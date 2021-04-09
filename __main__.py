@@ -1,6 +1,11 @@
+from datetime import datetime
+import time
 from itertools import count
+
 from bs4 import BeautifulSoup
 import pandas as pd # pandas는 이렇게 import함
+from selenium import webdriver
+
 from collection import crawler
 
 
@@ -60,7 +65,55 @@ def crawling_kyochon():
 
 
 def crawling_goobne():
-    pass
+    # Chrome 브라우저 시작
+    url = "http://www.goobne.co.kr/store/search_store.jsp"
+    wd = webdriver.Chrome('C:\\KDigital-AI\\chromedriver_win32\\chromedriver.exe')
+
+    # 페이지 이동
+    wd.get(url)
+    time.sleep(3)
+
+    results = []
+
+    # for index in range(105, 200): # test
+    for index in count(start=1, step=1):
+        # 자바스크립트 실행
+        script = f'store.getList({index})'
+        wd.execute_script(script)
+        print(f'{datetime.now()}: success for request[{script}]')
+        time.sleep(3) # 3초 동안 실행됨
+
+        # 자바스크립트 실행된 HTML(동적으로 랜더링된 HTML) 가져오기
+        html = wd.page_source
+        # print(html) - test
+
+        # 파싱하기(bs4)
+        bs = BeautifulSoup(html, 'html.parser')
+        tag_tbody = bs.find('tbody', attrs={'id': 'store_list'})
+        tags_tr = tag_tbody.findAll('tr')
+
+        # 끝 검출 (javascript:store.getList)
+        if tags_tr[0].get('class') is None:
+            break
+
+        for tag_tr in tags_tr:
+            datas = list(tag_tr.strings)
+
+            name = datas[1]
+            address = datas[6]
+            sidogugun = address.split()[:2]
+
+            t = (name, address) + tuple(sidogugun) # sidogugun이 list니까 tuple로 바꿈
+            results.append(t)
+
+    # print(results)
+
+    # 브라우저 닫기
+    wd.close()
+
+    # store (csv 파일로 저장)
+    table = pd.DataFrame(results, columns=['name', 'address', 'sido', 'sidogugun'])
+    table.to_csv('results/goobne.csv', encoding='utf-8', mode='w', index=True)
 
 
 
