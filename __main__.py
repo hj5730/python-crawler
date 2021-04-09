@@ -1,5 +1,6 @@
 from itertools import count
 from bs4 import BeautifulSoup
+import pandas as pd # pandas는 이렇게 import함
 from collection import crawler
 
 
@@ -7,8 +8,8 @@ def crawling_pelicana():
     results = [] # 데이터 담기
 
     # 데이터 조회
-    # for index in range(110, 200):
-    for index in count(start=110, step=1):
+    # for index in range(110, 200): # 테스트하기 위함
+    for index in count(start=1, step=1):
         url = f'https://pelicana.co.kr/store/stroe_search.html?page={index}&branch_name=&gu=&si='
         html = crawler.crawling(url)
 
@@ -27,20 +28,46 @@ def crawling_pelicana():
             datas = list(tag_tr.strings)
             name = datas[1] # 출력된 결과에서 2번째가 이름이니까 인덱스로 1 (인덱스는 0, 1 이니까)
             address = datas[3] # 출력된 결과에서 4번째에 있으니까 인덱스로 3 (인덱스는 0, 1, 2, 3 이니까)
-            sidogu = address.split()[:2] # split()에서 괄호 안에 아무것도 안하면 알아서 ' '로 구분 해줌
-            # print(sidogu)
+            sidogugun = address.split()[:2] # split()에서 괄호 안에 아무것도 안하면 알아서 ' '로 구분 해줌
+            # print(sidogugun)
+            # print(name, address, sidogu)
 
-            t = (name, address) + tuple(sidogu)
+            t = (name, address) + tuple(sidogugun)
             results.append(t)
 
     # print(results)
 
     # store (pandas: table로 만들어주는 것) -> pip install pandas 해서 pandas 설치해줘야 가능함.
-            # print(name, address, sidogu)
+    table = pd.DataFrame(results, columns=['name', 'address', 'sido', 'sidogugun'])
+    table.to_csv('results/pelicana.csv', encoding='utf-8', mode='w', index=True) # index는 no를 의미함
+    # 이렇게 하면 results디렉토리 밑에 pelicana.csv 파일이 생성됨.
+    # table에서 입력한 함수의 결과가 그 파일 안에 쓰여있음
+
+
+
+
+
+def crawling_nene():
+    pass
+
+
+def crawling_kyochon():
+    pass
+
+
+
+
+
+
+def crawling_goobne():
+    pass
+
+
 
 
 
 if __name__ == '__main__':
-    crawling_pelicana()
-
-    p
+    # crawling_pelicana()
+    # crawling_nene()
+    # crawling_kyochon()
+    crawling_goobne()
